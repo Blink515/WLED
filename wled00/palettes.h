@@ -844,6 +844,13 @@ const byte candy2_gp[] PROGMEM = {
   211,  39, 33, 34,
   255,   1,  1,  1};
 
+const byte holly_green_red_gp[] PROGMEM = {
+    0, 240,   4,   2,
+   48,   0,   0,   0,
+  112,   0,  88,  12,
+  208, 128, 128, 128,
+  255, 128, 128, 128};
+
 // Single array of defined cpt-city color palettes.
 // This will let us programmatically choose one based on
 // a number, rather than having to activate each explicitly
@@ -906,7 +913,8 @@ const byte* const gGradientPalettes[] PROGMEM = {
   blink_red_gp,                 //67-54 Blink Red
   red_shift_gp,                 //68-55 Red Shift
   red_tide_gp,                  //69-56 Red Tide
-  candy2_gp                     //70-57 Candy2
+  candy2_gp,                    //70-57 Candy2
+  holly_green_red_gp            //71-58 Holly Green & Red
 };
 
 #endif

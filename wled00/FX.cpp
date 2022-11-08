@@ -398,6 +398,67 @@ uint16_t scan(bool dual)
 }
 
 
+// Modified ColorWaves with palette. Added glitter effects
+// ColorWavesWithPalettes by Mark Kriegsman: https://gist.github.com/kriegsman/8281905786e8b2632aeb
+// This function draws color waves with an ever-changing,
+// widely-varying set of parameters, using a color palette.
+uint16_t mode_glitterWaves()
+{
+  uint16_t duration = 10 + SEGMENT.speed;
+  uint16_t sPseudotime = SEGENV.step;
+  uint16_t sHue16 = SEGENV.aux0;
+
+  uint8_t brightdepth = beatsin88(341, 96, 224);
+  uint16_t brightnessthetainc16 = beatsin88( 203, (25 * 256), (40 * 256));
+  uint8_t msmultiplier = beatsin88(137, 23, 60);
+
+  uint16_t hue16 = sHue16;//gHue * 256;
+  uint16_t hueinc16 = beatsin88(111, 300, 1500)*SEGMENT.intensity*10/255;  // Use the Intensity Slider for the hues
+
+  sPseudotime += duration * msmultiplier;
+  sHue16 += duration * beatsin88(390, 5, 9);
+  uint16_t brightnesstheta16 = sPseudotime;
+  //CRGB fastled_col;
+
+  if (SEGENV.call == 0) SEGMENT.fill(BLACK);
+
+  for (int i = 0 ; i < SEGLEN; i++) {
+    hue16 += hueinc16;
+    uint8_t hue8 = hue16 >> 8;
+    uint16_t h16_128 = hue16 >> 7;
+    if ( h16_128 & 0x100) {
+      hue8 = 255 - (h16_128 >> 1);
+    } else {
+      hue8 = h16_128 >> 1;
+    }
+
+    brightnesstheta16  += brightnessthetainc16;
+    uint16_t b16 = sin16( brightnesstheta16  ) + 32768;
+
+    uint16_t bri16 = (uint32_t)((uint32_t)b16 * (uint32_t)b16) / 65536;
+    uint8_t bri8 = (uint32_t)(((uint32_t)bri16) * brightdepth) / 65536;
+    bri8 += (255 - brightdepth);
+
+    //CRGB newcolor = ColorFromPalette(SEGPALETTE, hue8, bri8);
+    //fastled_col = SEGMENT.getPixelColor(i); // TODO
+
+    //nblend(fastled_col, newcolor, 128);
+    //SEGMENT.setPixelColor(i, fastled_col.red, fastled_col.green, fastled_col.blue);
+    SEGMENT.blendPixelColor(i, SEGMENT.color_from_palette(hue8, false, PALETTE_SOLID_WRAP, 0, bri8), 128); // 50/50 mix
+  }
+  SEGENV.step = sPseudotime;
+  SEGENV.aux0 = sHue16;
+
+  // Add glitter
+  if (SEGMENT.intensity > random8())
+    {
+      SEGMENT.setPixelColor(random16(SEGLEN), ULTRAWHITE);
+    }
+
+  return FRAMETIME;
+}
+static const char _data_FX_MODE_COLORWAVES_GLITTER[] PROGMEM = "Colorwaves Glitter@!,!;!,!,!;!;1d";
+
 /*
  * Runs a single pixel back and forth.
  */
@@ -7453,6 +7514,7 @@ void WS2812FX::setupEffectData() {
   addEffect(FX_MODE_BLENDS, &mode_blends, _data_FX_MODE_BLENDS);
   addEffect(FX_MODE_TV_SIMULATOR, &mode_tv_simulator, _data_FX_MODE_TV_SIMULATOR);
   addEffect(FX_MODE_DYNAMIC_SMOOTH, &mode_dynamic_smooth, _data_FX_MODE_DYNAMIC_SMOOTH);
+  addEffect(FX_MODE_COLORWAVES_GLITTER, &mode_glitterWaves, _data_FX_MODE_COLORWAVES_GLITTER);
 
   // --- 2D non-audio effects ---
 #ifndef WLED_DISABLE_2D
